@@ -29,6 +29,7 @@ const sendTransaction = async (sender, to, amount) => {
         value: ethers.parseUnits(amount.toString(), 'wei')
     });
 
+    console.log(transactionResponse)
     return transactionResponse.hash;
 };
 
