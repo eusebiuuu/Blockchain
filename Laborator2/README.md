@@ -95,7 +95,7 @@ State variables cannot be modified by an external account, but their value is ac
 
 3. Use Remix IDE to compile and deploy FidelityPoints contract, then interact with its functions to verify that registration, earning, spending, and total point tracking work correctly.
 
-4. Go to [infura](https://developer.metamask.io/) and create and API KEY for an RPC_URL. Add the variable SEPOLIA_RPC_URL and SEPOLIA_PRIVATE_KEY in an .env file located in the main folder of the hardhat project.
+4. Go to [infura](https://developer.metamask.io/) and create and API KEY for an RPC_URL. Add the variable `SEPOLIA_RPC_URL` and `SEPOLIA_PRIVATE_KEY` in an `.env` file located in the main folder of the hardhat project.
 
 SEPOLIA_RPC_URL: an endpoint provided by Infura, Alchemy, or QuickNode that lets your Hardhat project talk to the blockchain.
 
@@ -112,7 +112,7 @@ npx hardhat ignition deploy ignition/modules/FidelityPoints.ts --network sepolia
 6. Run test:
 
 ```
-npx hardhat test .\test\FidelityPoints.ts
+npx hardhat test ./test/FidelityPoints.ts
 ```
 7. In Catalog.sol add a uint stock variable to Product and write functions:
 - ```increaseStock(bytes32 code, uint amount)```

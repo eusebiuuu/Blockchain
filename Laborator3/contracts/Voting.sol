@@ -21,17 +21,24 @@ contract Voting{
 
     address public admin;
 
+    uint endVoting;
+
     uint endRegister;
 
     uint nonce;
 
     mapping(address => Voter) public voters;
 
+    mapping(address => bool) hasVoted;
+
+    mapping(bytes32 => bool) hasRegistered;
+
     Proposal[] public proposals;
 
     constructor(uint ndays) {
         admin = msg.sender;
-        endRegister = block.timestamp  + (ndays * 24 * 60 * 60);
+        endRegister = block.timestamp + (ndays * 24 * 60 * 60);
+        endVoting = block.timestamp + 2 * (ndays * 24 * 60 * 60);
     }
 
 
@@ -49,25 +56,40 @@ contract Voting{
     }
 
     function registerVoter(bytes32 registerToken) external returns (bytes32 votingToken){
-        bytes32 randToken =  keccak256(abi.encodePacked(nonce, registerToken, block.timestamp));  
+        require(hasRegistered[registerToken] == false, "You have already registered");
+        hasRegistered[registerToken] = true;
+        bytes32 randToken = keccak256(abi.encodePacked(nonce, registerToken, block.timestamp));
         voters[msg.sender].token = randToken;
         voters[msg.sender].voted = false;
         votingToken = keccak256(abi.encodePacked(randToken, msg.sender));
         nonce += 1;
     }
 
-    function vote(uint[] memory votes, bytes32 signedToken) external{
+    function vote(uint[] memory votes, bytes32 signedToken) external {
+        require(block.timestamp <= endVoting, "Voting period has ended");
+        require(hasVoted[msg.sender] == false, "You have already voted");
+        hasVoted[msg.sender] = true;
 
         for(uint i = 0; i < votes.length; i++){
             proposals[votes[i]].voteCount += 1;
             voters[msg.sender].votes.push(votes[i]);
         }
 
-        voters[msg.sender].voted = true; 
+        voters[msg.sender].voted = true;
 
     }
 
     function winningProposal() public view returns (uint winningProposalId){
+        require(block.timestamp > endVoting, "Voting must be ended to find the winner");
         winningProposalId = 0;
+        uint maxVotes = 0;
+        
+        for (uint i = 0; i < proposals.length; ++i) {
+            uint currentVotes = proposals[i].voteCount;
+            if (currentVotes > maxVotes) {
+                winningProposalId = i;
+                maxVotes = currentVotes;
+            }
+        }
     }      
 }
