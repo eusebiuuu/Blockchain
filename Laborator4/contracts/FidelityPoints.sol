@@ -8,8 +8,11 @@ contract FidelityPoints {
 
     uint private totalPoints;
 
+    uint public nbCalls;
+
     mapping(address => uint) public points;
 
+    error NotFound();
 
     event PointsAdded(address indexed client, uint points);
     event PointsSpent(address indexed client, uint points);
@@ -46,16 +49,27 @@ contract FidelityPoints {
         emit PointValueChanged(oldValue, _pointValue);
     }
 
-    function getTotalValue(address client) public view returns (uint totalValue) {
-        totalValue = points[client] * pointValue;
-    }
-
     function _updateTotalPoints(int256 _change) internal {
         if (_change > 0) {
             totalPoints += uint256(_change);
         } else {
             totalPoints -= uint256(-_change);
         }
+    }
+
+    function getTotalValue(address client) external returns (uint totalValue){
+        nbCalls += 1;
+        totalValue = points[client] * pointValue;
+    }
+
+    function getRequiredPoints(address client, uint requiredValue) external returns (uint requiredPoints){
+        requiredPoints = requiredValue / pointValue;
+            
+        if (points[client] == 0) 
+            revert NotFound();
+
+        require (this.getTotalValue(client) >= requiredValue, "Insufficient Funds!");
+
     }
 
     function getTotalPoints() public view returns (uint256) {
@@ -71,11 +85,13 @@ contract Caller{
     uint public nbCallsRevert;
     uint public nbCallsPanic;
     uint public nbCalls;
+    event RequiredPointsFailure(string message);
+    event RequiredPointsErrorCode(uint errorCode);
+    event RequiredPointsReverts(bytes rev);
 
 
     constructor(address _bonusPointsAddress) {
-        bonusPointsContract =
-                        FidelityPoints(_bonusPointsAddress);
+        bonusPointsContract = FidelityPoints(_bonusPointsAddress);
     }
 
     function calculateRequiredPoints(address client, uint requiredValue) public returns (uint) {
@@ -86,13 +102,18 @@ contract Caller{
         }
         catch Error(string memory reason) {
             nbCallsError += 1;
+            emit RequiredPointsFailure(reason);
         }
         catch Panic(uint errorCode) {
             nbCallsPanic += 1;
+            emit RequiredPointsErrorCode(errorCode);
         }
         catch (bytes memory r) {
             nbCallsRevert += 1;
+            emit RequiredPointsReverts(r);
         }
+
+        return bonusPointsContract.getRequiredPoints(client, requiredValue);
     }
 
 }

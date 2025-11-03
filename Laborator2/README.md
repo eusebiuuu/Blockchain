@@ -107,6 +107,8 @@ SEPOLIA_PRIVATE_KEY: The private key of the Ethereum wallet that will deploy you
 npx hardhat ignition deploy ignition/modules/FidelityPoints.ts --network sepolia
 ```
 
+Any ideas why do I get "Error HHE10409 in plugin hardhat-ignition: Gas estimation failed: gas required exceeds allowance (0)" when running "npx hardhat ignition deploy ignition/modules/FidelityPoints.ts --network sepolia"?
+
 5. Check ingnition/deployments and  serach for the deployed contract on [Sepolia Testnet Explorer](https://sepolia.etherscan.io/)
 
 6. Run test:
@@ -130,7 +132,5 @@ npx hardhat test ./test/FidelityPoints.ts
 ### Docs: 
 
 [Solidity docs](https://docs.soliditylang.org/en/v0.8.28/)
-
-[Solidity docs pdf](https://docs.soliditylang.org/_/downloads/en/latest/pdf/)
 
 [bytes 32 converter](https://web3-type-converter.onbrn.com/)

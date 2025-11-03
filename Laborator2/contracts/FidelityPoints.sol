@@ -20,7 +20,7 @@ contract FidelityPoints {
         _updateTotalPoints(int(_points));
     }
 
-    function setPointValue(uint _pointValue) public{
+    function setPointValue(uint _pointValue) public {
         pointValue = _pointValue;
     }
 

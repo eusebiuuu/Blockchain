@@ -2,18 +2,18 @@
 
 pragma solidity ^0.8.28;
 
-contract Voting{
+contract Voting {
 
     enum State { Active, Inactive, Locked } 
 
-    struct Voter{
-        bool voted;
+    struct Voter {
+        address voterAddress;
         bytes32 token;
         uint[] votes;
     }
 
-    struct Proposal{
-        bytes32 projectName;
+    struct Proposal {
+        string projectName;
         string teamName;
         uint voteCount;
         State state;
@@ -21,28 +21,51 @@ contract Voting{
 
     address public admin;
 
-    uint endVoting;
-
     uint endRegister;
-
+    uint endVoting;
     uint nonce;
+    uint maxVotes;
 
     mapping(address => Voter) public voters;
+    mapping(bytes32 => address) public addresses;
 
-    mapping(address => bool) hasVoted;
-
-    mapping(bytes32 => bool) hasRegistered;
+    mapping(bytes32 => bool) usedRegisterToken;
+    mapping(bytes32 => bool) usedVotingToken;
 
     Proposal[] public proposals;
 
-    constructor(uint ndays) {
+    constructor(uint ndays, uint maxVotesCount) {
         admin = msg.sender;
         endRegister = block.timestamp + (ndays * 24 * 60 * 60);
-        endVoting = block.timestamp + 2 * (ndays * 24 * 60 * 60);
+        endVoting = block.timestamp + ((ndays + 10) * 24 * 60 * 60);
+        maxVotes = maxVotesCount;
     }
 
+    //---------------------------------
 
-    function registerProposal(bytes32 projectName, string memory teamName) external {
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "Only an admin can call this function");
+        _;
+    }
+
+    modifier validVotingPeriod(uint voteIdx) {
+        require(proposals[voteIdx].state == State.Active && block.timestamp <= endVoting, "You cannot vote outside the established period");
+        _;
+    }
+
+    modifier tooManyVotes(address voter) {
+        require(voters[msg.sender].votes.length < maxVotes, "You've reached the maximum number of votes");
+        _;
+    }
+
+    modifier checkTokenValidity(bytes32 token) {
+        require(addresses[token] == msg.sender, "This token is not yours!");
+        _;
+    }
+
+    //---------------------------------
+
+    function registerProposal(string memory projectName, string memory teamName) external {
         proposals.push(Proposal({
             projectName: projectName,
             teamName: teamName,
@@ -51,45 +74,46 @@ contract Voting{
         }));
     }
 
-    function setProposalState(uint idx, State state) external{
+    function setProposalState(uint idx, State state) external onlyAdmin {
         proposals[idx].state = state;
     }
 
-    function registerVoter(bytes32 registerToken) external returns (bytes32 votingToken){
-        require(hasRegistered[registerToken] == false, "You have already registered");
-        hasRegistered[registerToken] = true;
+    function registerVoter(bytes32 registerToken) external returns (bytes32 votingToken) {
+        require(usedRegisterToken[registerToken] == false, "You have already registered");
+        usedRegisterToken[registerToken] = true;
+
         bytes32 randToken = keccak256(abi.encodePacked(nonce, registerToken, block.timestamp));
         voters[msg.sender].token = randToken;
-        voters[msg.sender].voted = false;
         votingToken = keccak256(abi.encodePacked(randToken, msg.sender));
+
+        voters[msg.sender] = Voter({
+            voterAddress: msg.sender,
+            token: votingToken,
+            votes: new uint[](0)
+        });
+
+        addresses[votingToken] = msg.sender;
+
         nonce += 1;
+        return votingToken;
     }
 
-    function vote(uint[] memory votes, bytes32 signedToken) external {
-        require(block.timestamp <= endVoting, "Voting period has ended");
-        require(hasVoted[msg.sender] == false, "You have already voted");
-        hasVoted[msg.sender] = true;
-
-        for(uint i = 0; i < votes.length; i++){
-            proposals[votes[i]].voteCount += 1;
-            voters[msg.sender].votes.push(votes[i]);
-        }
-
-        voters[msg.sender].voted = true;
-
+    function vote(uint voteIdx, bytes32 signedToken) external validVotingPeriod(voteIdx) tooManyVotes(msg.sender) checkTokenValidity(signedToken) {
+        proposals[voteIdx].voteCount += 1;
+        voters[msg.sender].votes.push(voteIdx);
     }
 
-    function winningProposal() public view returns (uint winningProposalId){
+    function winningProposal() onlyAdmin public view returns (uint winningProposalId) {
         require(block.timestamp > endVoting, "Voting must be ended to find the winner");
         winningProposalId = 0;
-        uint maxVotes = 0;
+        uint maximumVotes = 0;
         
         for (uint i = 0; i < proposals.length; ++i) {
             uint currentVotes = proposals[i].voteCount;
             if (currentVotes > maxVotes) {
                 winningProposalId = i;
-                maxVotes = currentVotes;
+                maximumVotes = currentVotes;
             }
         }
-    }      
+    }
 }

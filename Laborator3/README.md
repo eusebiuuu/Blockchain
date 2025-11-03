@@ -799,7 +799,7 @@ An online voting system should allow a transparent and secure vote counting. The
 ### Implementing Blockchain Auction Systems
 
 Implement two different auction mechanisms as smart contracts:
-5 **English Auction** (Ascending Price): Bidders compete by offering increasingly higher bids
+1. **English Auction** (Ascending Price): Bidders compete by offering increasingly higher bids
 
 An **English Auction** is the traditional auction format where:
 - Auction starts with a reserve price (minimum bid)
