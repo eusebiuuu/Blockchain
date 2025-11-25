@@ -1,0 +1,160 @@
+.project-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 420px;
+    min-width: 320px;
+    max-width: 100%;
+}
+
+.project-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.project-card.voted {
+    border-color: #E4C93F;
+    box-shadow: 0 4px 6px rgba(228, 201, 63, 0.3);
+}
+
+.project-card.voted:hover {
+    box-shadow: 0 12px 24px rgba(228, 201, 63, 0.4);
+}
+
+.project-image {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+    background: #e2e8f0;
+}
+
+.project-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.vote-button {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    border: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #cbd5e0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.vote-button:hover {
+    transform: scale(1.1);
+    background: white;
+    color: #E4C93F;
+}
+
+.vote-button.active {
+    background: #E4C93F;
+    color: white;
+}
+
+.vote-button.active:hover {
+    background: #D4B51E;
+    color: white;
+}
+
+.vote-button.disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.vote-button.disabled:hover {
+    transform: none;
+}
+
+.project-content {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.project-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0 0 12px 0;
+    line-height: 1.3;
+    min-height: 52px;
+}
+
+
+.project-votes {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #E4C93F;
+    font-weight: 600;
+    margin: 0 0 auto 0;
+}
+
+.project-votes svg {
+    flex-shrink: 0;
+    color: #E4C93F;
+}
+
+.project-team {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #718096;
+    margin: 0 0 auto 0;
+}
+
+.project-team svg {
+    flex-shrink: 0;
+}
+
+.project-github {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #f7fafc;
+    color: #4a5568;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    margin-top: 16px;
+}
+
+.project-github:hover {
+    background: #667eea;
+    color: white;
+}
+
+.project-github svg {
+    flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+    .project-card {
+        max-width: 100%;
+    }
+}
