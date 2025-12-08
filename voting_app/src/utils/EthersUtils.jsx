@@ -60,7 +60,7 @@ const getActiveProposals = async () => {
             name: ethers.decodeBytes32String(proposal.projectName),
             team: proposal.teamName,
             github: proposal.gitAddress,
-            image: "https://via.placeholder.com/300x200/4F46E5/ffffff?text=DeFi+Platform",
+            image: proposal.imageUrl,
             voteCount: Number(proposal.voteCount),
             state: Number(proposal.state)
         }));
@@ -78,13 +78,20 @@ const registerVoter = async (signer, registerToken) => {
         // Convert register token to bytes32
         const tokenBytes = ethers.encodeBytes32String(registerToken);
 
+
+        const votingToken = await votingContract.registerVoter.staticCall(tokenBytes);
+
         const tx = await votingContract.registerVoter(tokenBytes);
         const receipt = await tx.wait();
 
         // The voting token is returned from the function
         console.log("Voter registered successfully");
 
-        return receipt;
+        // Return both the voting token and receipt
+        return {
+            votingToken: votingToken,
+            receipt: receipt
+        };
     } catch (error) {
         console.error("Error registering voter:", error);
         throw error;
@@ -95,7 +102,7 @@ const castVote = async (signer, proposalIds, signedToken) => {
     try {
         const votingContract = new ethers.Contract(VOTING_ADDRESS, VOTING_ABI, signer);
 
-        const tx = await votingContract.vote(proposalIds/*, signedToken*/);
+        const tx = await votingContract.vote(proposalIds, signedToken);
         const receipt = await tx.wait();
 
         console.log("Vote cast successfully");
@@ -118,13 +125,42 @@ const hasVoted = async (address) => {
     }
 };
 
+const registerProposal = async (signer, projectName, teamName, gitAddress, imageUrl, participant1, participant2) => {
+    try {
+        const votingContract = new ethers.Contract(VOTING_ADDRESS, VOTING_ABI, signer);
+
+        // Convert project name to bytes32
+        const projectNameBytes = ethers.encodeBytes32String(projectName);
+        console.log("Project name:", projectNameBytes);
+
+        const tx = await votingContract.registerProposal(
+            projectNameBytes,
+            teamName,
+            gitAddress,
+            imageUrl,
+            participant1,
+            participant2
+        );
+
+        console.log("tx", tx);
+        const receipt = await tx.wait();
+
+        console.log("Project registered successfully");
+        return receipt;
+    } catch (error) {
+        console.error("Error registering proposal:", error);
+        throw error;
+    }
+};
+
 const getContractParams = async () => {
     try {
         const votingContract = new ethers.Contract(VOTING_ADDRESS, VOTING_ABI, provider);
-        const [maxVotes, endVoting] = await votingContract.getContractParams();
+        const [maxVotes, endRegister, endVoting] = await votingContract.getContractParams();
 
         return {
             maxVotes: Number(maxVotes),
+            endRegister: Number(endRegister),
             endVoting: Number(endVoting),
             contractAddress: VOTING_ADDRESS
         };
@@ -253,6 +289,59 @@ const getCurrentNetwork = async () => {
     }
 };
 
+
+const estimateVoteGas = async (signer, proposalIds, signedToken) => {
+    try {
+        const votingContract = new ethers.Contract(VOTING_ADDRESS, VOTING_ABI, signer);
+
+        // Estimate gas for the vote transaction
+        const gasEstimate = await votingContract.vote.estimateGas(proposalIds, signedToken);
+
+        // Get current gas price
+        const feeData = await signer.provider.getFeeData();
+
+        // Calculate estimated cost
+        const estimatedCost = gasEstimate * feeData.gasPrice;
+        const estimatedCostInEth = ethers.formatEther(estimatedCost);
+
+        console.log("Gas estimation successful");
+        console.log("  Gas units:", gasEstimate.toString());
+        console.log("  Estimated cost:", estimatedCostInEth, "ETH");
+
+        return {
+            success: true,
+            gas: gasEstimate.toString(),
+            gasPrice: feeData.gasPrice.toString(),
+            costInWei: estimatedCost.toString(),
+            costInEth: estimatedCostInEth
+        };
+    } catch (error) {
+        console.error("Gas estimation failed:", error);
+
+        let errorType = 'unknown';
+        if (error.message.includes("Already voted")) {
+            errorType = 'already_voted';
+        } else if (error.message.includes("Invalid signature")) {
+            errorType = 'invalid_signature';
+        } else if (error.message.includes("Exceeded maximum votes")) {
+            errorType = 'exceeded_max_votes';
+        } else if (error.message.includes("Invalid proposal state")) {
+            errorType = 'invalid_proposal_state';
+        } else if (error.message.includes("voting is over")) {
+            errorType = 'voting_over';
+        } else if (error.message.includes("insufficient funds")) {
+            errorType = 'insufficient_funds';
+        }
+
+        return {
+            success: false,
+            errorType: errorType,
+            errorMessage: error.message,
+            error: error
+        };
+    }
+};
+
 export {
     provider,
     connectWalletMetamask,
@@ -266,6 +355,8 @@ export {
     getVoteCastHistory,
     setupMetaMaskListeners,
     getCurrentNetwork,
+    registerProposal,
+    estimateVoteGas,
     VOTING_ADDRESS,
     VOTING_ABI
 };

@@ -1,6 +1,7 @@
 const Path = {
     WELCOME: "/",
-    VOTING: "/voting"
+    VOTING: "/voting",
+    FORM: "project-form"
 }
 
 export default Path

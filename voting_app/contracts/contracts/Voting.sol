@@ -16,6 +16,7 @@ contract Voting {
         bytes32 projectName;
         string teamName;
         string gitAddress;
+        string imageUrl;
         uint voteCount;
         State state;
     }
@@ -59,23 +60,26 @@ contract Voting {
 
     constructor(uint regdays, uint votedays, uint _maxvotes) {
         admin = msg.sender;
+        endRegister = block.timestamp + (regdays * 60);
+        endVoting = block.timestamp + ((votedays + regdays) * 60);
 
-        endRegister = block.timestamp + (regdays * 24 * 60 * 60);
-        endVoting = block.timestamp + ((votedays + regdays) * 24 * 60 * 60);
+//        endRegister = block.timestamp + (regdays * 24 * 60 * 60);
+//        endVoting = block.timestamp + ((votedays + regdays) * 24 * 60 * 60);
 
         maxVotes = _maxvotes;
     }
 
 
-    function registerProposal(bytes32 projectName, string memory teamName, string memory gitAddress, string memory participant1, string memory participant2) public /*registrationActive*/ {
+    function registerProposal(bytes32 projectName, string memory teamName, string memory gitAddress, string memory imageUrl, string memory participant1, string memory participant2) public registrationActive {
         require(teamMember[msg.sender] == false, "You already registerd a project!");
 
         proposals.push(Proposal({
             projectName: projectName,
             teamName: teamName,
             gitAddress: gitAddress,
+            imageUrl: imageUrl,
             voteCount: 0,
-            state: State.Inactive
+            state: State.Active
         }));
 
         teamMember[msg.sender] = true;
@@ -100,35 +104,36 @@ contract Voting {
         emit ProposalStateChanged(idx, oldState, newState);
     }
 
-    function extendRegisterDates(uint ndays) public onlyOwner /*registrationActive*/ {
+    function extendRegisterDates(uint ndays) public onlyOwner registrationActive {
         endRegister += (ndays * 24 * 60 * 60);
         endVoting += (ndays * 24 * 60 * 60);
         assert(endVoting > endRegister);
     }
 
-    function extendVotingDates(uint ndays) public onlyOwner /*votingActive (true) */{
+    function extendVotingDates(uint ndays) public onlyOwner votingActive (true){
         endVoting += (ndays * 24 * 60 * 60);
         assert(endVoting > endRegister);
     }
 
     function registerVoter(bytes32 registerToken) external returns (bytes32 votingToken){
-        bytes32 randToken = keccak256(abi.encodePacked(nonce, registerToken, block.timestamp));
-        voters[msg.sender].token = randToken;
+        bytes32 randToken = keccak256(abi.encodePacked(nonce, registerToken));
         voters[msg.sender].voted = false;
+        voters[msg.sender].token = randToken;
         votingToken = keccak256(abi.encodePacked(randToken, msg.sender));
         nonce += 1;
     }
 
-    function vote(uint[] memory votes/*, bytes memory signedToken*/) public /*votingActive(true)*/ {
+
+    function vote(uint[] memory votes, bytes memory signedToken) public votingActive(true) {
         require(votes.length <= maxVotes, "Exceeded maximum votes!");
         require(voters[msg.sender].voted == false, "Already voted!");
 
         bytes32 randToken = voters[msg.sender].token;
         bytes32 votingToken = keccak256(abi.encodePacked(randToken, msg.sender));
 
-        //bool validSig = checkSignature(signedToken, votingToken, msg.sender);
+        bool validSig = checkSignature(signedToken, votingToken, msg.sender);
 
-        //require(validSig, "Invalid signature!");
+        require(validSig, "Invalid signature!");
 
         for (uint i = 0; i < votes.length; i++) {
             require(proposals[votes[i]].state == State.Active, "Invalid proposal state!");
@@ -142,7 +147,7 @@ contract Voting {
     }
 
 
-    function topProposals(uint limit) public view /*votingActive(false)*/ returns (uint[] memory winningProposalId){
+    function topProposals(uint limit) public view votingActive(false) returns (uint[] memory winningProposalId){
         require(limit > 0 && limit <= proposals.length, "Invalid limit");
 
         uint[] memory indices = new uint[](proposals.length);
@@ -174,7 +179,7 @@ contract Voting {
     }
 
     function sigRSV(bytes memory sig) public pure returns (bytes32 r, bytes32 s, uint8 v) {
-        require(sig.length == 65, "invalid signature");
+        require(sig.length == 65, "invalid signature length");
 
         assembly {
             r := mload(add(sig, 32))
@@ -220,8 +225,13 @@ contract Voting {
         return maxVotes;
     }
 
-    function getContractParams() external view returns(uint256, uint256){
-        return (maxVotes, endVoting);
+    function getContractParams() external view returns(uint256, uint256, uint256){
+        return (maxVotes, endRegister, endVoting);
     }
 
 }
+
+
+
+
+

@@ -1,6 +1,6 @@
 import {useNavigate} from 'react-router-dom';
 import {useWallet} from '../utils/Context.jsx';
-import {connectWalletMetamask} from '../utils/EthersUtils.jsx';
+import {connectWalletMetamask, getContractParams} from '../utils/EthersUtils.jsx';
 import '../styles/Welcome.css';
 
 export const Welcome = () => {
@@ -9,7 +9,19 @@ export const Welcome = () => {
 
     const accountChangedHandler = async (signer) => {
         initializeWallet(signer);
-        navigate('/voting');
+
+        // Fetch contract parameters to determine navigation
+        const params = await getContractParams();
+        const now = Math.floor(Date.now() / 1000);
+
+        // Check if registration is still active
+        if (now < params.endRegister) {
+            navigate('/project-form');
+        } else if (now < params.endVoting) {
+            navigate('/voting');
+        } else {
+            navigate('/voting');
+        }
     };
 
     const handleConnectMetaMaskButtonClick = () => {

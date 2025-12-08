@@ -47,7 +47,7 @@ async function main() {
 
     // Read parameters from environment variables
     // Default values
-    let regdays = 7;    // Registration period in days
+    let regdays = 2;    // Registration period in days
     let votedays = 14;  // Voting period in days
     let maxvotes = 3;   // Maximum votes per voter
 
@@ -100,35 +100,40 @@ async function main() {
             teamName: "CryptoVault",
             gitAddress: "https://github.com/cryptovault/defi-yield-aggregator",
             participant1: "Alice Nakamoto",
-            participant2: "Bob Vitalik"
+            participant2: "Bob Vitalik",
+            imageUrl: "test"
         },
         {
             projectName: "NFT Marketplace",
             teamName: "MetaCollectors",
             gitAddress: "https://github.com/metacollectors/nft-marketplace",
             participant1: "Carol Buterin",
-            participant2: "David Satoshi"
+            participant2: "David Satoshi",
+            imageUrl: "test"
         },
         {
             projectName: "DAO Governance Tool",
             teamName: "ChainVoters",
             gitAddress: "https://github.com/chainvoters/dao-governance",
             participant1: "Eve Ethereum",
-            participant2: "Frank Polygon"
+            participant2: "Frank Polygon",
+            imageUrl: "test"
         },
         {
             projectName: "DeFi Lending Protocol",
             teamName: "LiquidStake",
             gitAddress: "https://github.com/liquidstake/lending-protocol",
             participant1: "Grace Solana",
-            participant2: "Henry Avalanche"
+            participant2: "Henry Avalanche",
+            imageUrl: "test"
         },
         {
             projectName: "Cross-Chain Bridge",
             teamName: "ChainLink Bridge",
             gitAddress: "https://github.com/chainlinkbridge/cross-chain",
             participant1: "Ivy Cardano",
-            participant2: "Jack Cosmos"
+            participant2: "Jack Cosmos",
+            imageUrl: "test"
         }
     ];
 
@@ -142,6 +147,7 @@ async function main() {
                 stringToBytes32(proposal.projectName),
                 proposal.teamName,
                 proposal.gitAddress,
+                proposal.imageUrl,
                 proposal.participant1,
                 proposal.participant2
             );

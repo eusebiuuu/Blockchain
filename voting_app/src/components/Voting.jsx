@@ -1,13 +1,15 @@
 import '../styles/Voting.css';
 import React, {useState, useEffect, useCallback} from 'react';
 import {useWallet} from '../utils/Context.jsx';
+import {ethers} from 'ethers';
 import {
     getActiveProposals,
     castVote,
     hasVoted,
     getContractParams,
     subscribeToVoteCastEvents,
-    setupMetaMaskListeners
+    setupMetaMaskListeners,
+    estimateVoteGas
 } from '../utils/EthersUtils';
 import ProjectCard from './ProjectCard.jsx';
 import {useNavigate} from "react-router-dom";
@@ -29,6 +31,11 @@ export const Voting = () => {
     const [votingDeadline, setVotingDeadline] = useState(new Date());
     const [userHasVoted, setUserHasVoted] = useState(false);
     const [votingInProgress, setVotingInProgress] = useState(false);
+
+    const [showVotingTokenModal, setShowVotingTokenModal] = useState(false);
+    const [votingTokenInput, setVotingTokenInput] = useState('');
+    const [signingToken, setSigningToken] = useState(false);
+    const [gasEstimate, setGasEstimate] = useState(null);
 
     // Fetch active projects on component mount
     useEffect(() => {
@@ -180,31 +187,93 @@ export const Voting = () => {
             return;
         }
 
+        setShowVotingTokenModal(true);
+    }
+
+
+    const handleConfirmVote = async () => {
+        if (!votingTokenInput.trim()) {
+            alert("Please enter your voting token!");
+            return;
+        }
+
+        const votingTokenBytes32 = votingTokenInput.startsWith('0x')
+            ? votingTokenInput
+            : '0x' + votingTokenInput;
+
+        // Validate token format
+        if (votingTokenBytes32.length !== 66) {
+            alert("❌ Invalid voting token format.\n\nMust be 32 bytes (66 hex characters including 0x)");
+            setSigningToken(false);
+            return;
+        }
+
         try {
-            setVotingInProgress(true);
+            setSigningToken(true);
+            const bytesToSign = ethers.getBytes(votingTokenBytes32);
+            const signedToken = await wallet.signMessage(bytesToSign);
+            console.log("Signed token:", signedToken);
 
             // Convert Set to Array for contract call
             const selectedProjectIds = Array.from(votedProjects);
 
-            // TODO: Get the signed token from registration/signing flow
-            const signedToken = "0x...";
 
+
+            const gasResult = await estimateVoteGas(wallet, selectedProjectIds, signedToken);
+
+            if (!gasResult.success) {
+                if (gasResult.errorType === 'already_voted') {
+                    alert("❌ You have already voted!");
+                    setSigningToken(false);
+                    setShowVotingTokenModal(false);
+                    return;
+                } else if (gasResult.errorType === 'invalid_signature') {
+                    alert("❌ Invalid voting token.\n\nPlease check your token and try again.");
+                    setSigningToken(false);
+                    return;
+                } else if (gasResult.errorType === 'exceeded_max_votes') {
+                    alert(`❌ You can only vote for ${maxVotes} projects.`);
+                    setSigningToken(false);
+                    return;
+                } else if (gasResult.errorType === 'invalid_proposal_state') {
+                    alert("❌ One or more selected projects are not active for voting.");
+                    setSigningToken(false);
+                    return;
+                } else if (gasResult.errorType === 'voting_over') {
+                    alert("❌ The voting period has ended.");
+                    setSigningToken(false);
+                    return;
+                } else if (gasResult.errorType === 'insufficient_funds') {
+                    alert("❌ Insufficient funds to pay for gas fees.");
+                    setSigningToken(false);
+                    return;
+                }
+                console.warn("Gas estimation failed, continuing anyway:", gasResult.errorMessage);
+            } else {
+                setGasEstimate({
+                    gas: gasResult.gas,
+                    costInEth: gasResult.costInEth
+                });
+            }
+
+            // Submit vote with signed token
+            setVotingInProgress(true);
             await castVote(wallet, selectedProjectIds, signedToken);
 
             alert("Vote submitted successfully!");
             setUserHasVoted(true);
-
-            // Refresh projects to show updated vote counts
-            //const updatedProjects = await getActiveProposals();
-            //setProjects(updatedProjects);
+            setShowVotingTokenModal(false);
+            setVotingTokenInput('');
+            setGasEstimate(null);
 
         } catch (err) {
             console.error("Error submitting vote:", err);
             alert("Failed to submit vote: " + err.message);
         } finally {
+            setSigningToken(false);
             setVotingInProgress(false);
         }
-    }
+    };
 
     const formatAddress = (address) => {
         if (!address) return '';
@@ -356,6 +425,97 @@ export const Voting = () => {
                     ))}
                 </div>
             </main>
+
+            {/* Voting Token Modal */}
+            {showVotingTokenModal && (
+                <div className="modal-overlay" onClick={() => !signingToken && setShowVotingTokenModal(false)}>
+                    <div className="modal-content voting-token-modal" onClick={(e) => e.stopPropagation()}>
+                        <h2>Enter Your Voting Token</h2>
+                        <p>Please enter the voting token you received during registration</p>
+
+                        <div className="form-group">
+                            <label htmlFor="votingToken">Voting Token</label>
+                            <input
+                                type="text"
+                                id="votingToken"
+                                value={votingTokenInput}
+                                onChange={(e) => setVotingTokenInput(e.target.value)}
+                                placeholder="0x1234...abcd"
+                                className="token-input"
+                                disabled={signingToken}
+                            />
+                            <span className="input-hint">
+                                This will be signed with your MetaMask wallet
+                            </span>
+                        </div>
+
+                        <div className="vote-summary">
+                            <h3>You are voting for:</h3>
+                            <ul>
+                                {Array.from(votedProjects).map(projectId => {
+                                    const project = projects.find(p => p.id === projectId);
+                                    return (
+                                        <li key={projectId}>
+                                            <span className="project-badge">{project?.name}</span>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </div>
+
+                        {gasEstimate && (
+                            <div className="gas-estimate">
+                                <div className="gas-estimate-header">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                        <path d="M8 2a.5.5 0 01.5.5v5h5a.5.5 0 010 1h-5v5a.5.5 0 01-1 0v-5h-5a.5.5 0 010-1h5v-5A.5.5 0 018 2z"/>
+                                    </svg>
+                                    <span>Gas Estimate</span>
+                                </div>
+                                <div className="gas-details">
+                                    <div className="gas-item">
+                                        <span className="gas-label">Gas Units:</span>
+                                        <span className="gas-value">{gasEstimate.gas}</span>
+                                    </div>
+                                    <div className="gas-item">
+                                        <span className="gas-label">Estimated Cost:</span>
+                                        <span className="gas-value">{parseFloat(gasEstimate.costInEth).toFixed(6)} ETH</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="modal-actions">
+                            <button
+                                className="modal-button primary"
+                                onClick={handleConfirmVote}
+                                disabled={signingToken || !votingTokenInput.trim()}
+                            >
+                                {signingToken ? (
+                                    <>
+                                        <svg className="spinner" width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                            <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="3"
+                                                    strokeDasharray="15 35"/>
+                                        </svg>
+                                        Signing & Voting...
+                                    </>
+                                ) : (
+                                    'Sign & Vote'
+                                )}
+                            </button>
+                            <button
+                                className="modal-button secondary"
+                                onClick={() => {
+                                    setShowVotingTokenModal(false);
+                                    setVotingTokenInput('');
+                                }}
+                                disabled={signingToken}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
