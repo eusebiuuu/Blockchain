@@ -1,0 +1,119 @@
+.App {
+    min-height: 100vh;
+    background-color: #282c34;
+}
+
+.App-header {
+    padding: 20px;
+    color: white;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.App-header h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2.5rem;
+    color: #61dafb;
+}
+
+/* Account Info Section */
+.account-info {
+    margin-bottom: 40px;
+    display: flex;
+    justify-content: center;
+}
+
+.info-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    min-width: 500px;
+}
+
+.info-card h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    text-align: center;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+    padding-bottom: 10px;
+}
+
+.info-card p {
+    margin: 12px 0;
+    font-size: 1.1rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.info-card p strong {
+    color: #fff;
+}
+
+/* Products Section */
+.products-section {
+    margin-top: 40px;
+}
+
+.products-section h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2rem;
+    color: #61dafb;
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+    padding: 20px 0;
+}
+
+/* Loading and Empty States */
+.products-section > p {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #aaa;
+    margin: 40px 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .info-card {
+        min-width: auto;
+        width: 100%;
+    }
+
+    .products-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .App-header h1 {
+        font-size: 2rem;
+    }
+
+    .info-card p {
+        flex-direction: column;
+        gap: 5px;
+    }
+}
+
+@media (max-width: 480px) {
+    .App-header {
+        padding: 10px;
+    }
+
+    .info-card {
+        padding: 15px;
+    }
+
+    .info-card h3 {
+        font-size: 1.2rem;
+    }
+
+    .info-card p {
+        font-size: 0.95rem;
+    }
+}

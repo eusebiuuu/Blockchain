@@ -1,13 +1,10 @@
 import type { HardhatUserConfig } from "hardhat/config";
 
-import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
-import HardhatIgnitionEthersPlugin from "@nomicfoundation/hardhat-ethers"
-
-import dotenv from "dotenv";
-dotenv.config()
+import hardhatToolboxMochaEthersPlugin from "@nomicfoundation/hardhat-toolbox-mocha-ethers";
+import { configVariable } from "hardhat/config";
 
 const config: HardhatUserConfig = {
-  plugins: [hardhatToolboxViemPlugin, HardhatIgnitionEthersPlugin],
+  plugins: [hardhatToolboxMochaEthersPlugin],
   solidity: {
     profiles: {
       default: {
@@ -25,11 +22,11 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
-    localhost: {
-        url: "http://127.0.0.1:8545",
-        chainId: 31337,
-        type: "http"
-    },
+      localhost: {
+          url: "http://127.0.0.1:8545",
+          chainId: 31337,
+          type: "http"
+      },
     hardhatMainnet: {
       type: "edr-simulated",
       chainType: "l1",
@@ -41,10 +38,8 @@ const config: HardhatUserConfig = {
     sepolia: {
       type: "http",
       chainType: "l1",
-      gas: 10,
-      gasPrice: "auto",
-      url: process.env.SEPOLIA_RPC_URL as string,
-      accounts: [process.env.SEPOLIA_PRIVATE_KEY as string],
+      url: configVariable("SEPOLIA_RPC_URL"),
+      accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
     },
   },
 };
