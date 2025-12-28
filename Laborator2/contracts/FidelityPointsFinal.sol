@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
-contract FidelityPoints {
+contract FidelityPointsFinal {
 
     address public admin;
     uint public pointValue;

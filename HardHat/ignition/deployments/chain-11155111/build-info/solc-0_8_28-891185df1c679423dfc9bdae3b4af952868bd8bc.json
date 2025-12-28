@@ -1,0 +1,39 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_28-891185df1c679423dfc9bdae3b4af952868bd8bc",
+  "solcVersion": "0.8.28",
+  "solcLongVersion": "0.8.28+commit.7893614a",
+  "userSourceNameMap": {
+    "contracts/FidelityPoints.sol": "project/contracts/FidelityPoints.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "cancun",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/FidelityPoints.sol": {
+        "content": "// SPDX-License-Identifier: UNLICENSED\r\npragma solidity ^0.8.28;\r\n\r\n\r\ncontract FidelityPoints {\r\n    error NotFound();\r\n    error InsufficientPoints(uint available, uint required);\r\n    error UnauthorizedSpender();\r\n    error InvalidPointValue();\r\n\r\n    uint public nbCalls;\r\n\r\n    address public admin;\r\n    mapping(address => bool) public authorizedSpenders;\r\n    uint public pointValue;\r\n\r\n    uint private totalPoints;\r\n\r\n    mapping(address => uint) public points;\r\n    mapping(address => uint) public lifetimePointsEarned;\r\n    mapping(address => uint) public lifetimePointsSpent;\r\n\r\n    event PointsAdded(address indexed client, uint points);\r\n    event PointsSpent(address indexed client, uint points);\r\n    event PointValueChanged(uint oldValue, uint newValue);\r\n    event SpenderAuthorized(address indexed spender);\r\n    event SpenderRevoked(address indexed spender);\r\n\r\n    constructor(uint _pointValue) {\r\n        if (_pointValue == 0) revert InvalidPointValue();\r\n        admin = msg.sender;\r\n        pointValue = _pointValue;\r\n    }\r\n\r\n    modifier onlyAdmin() {\r\n        require(msg.sender == admin, \"Only admin can call this function\");\r\n        _;\r\n    }\r\n\r\n    modifier onlyAuthorizedSpender() {\r\n        if (msg.sender != admin && !authorizedSpenders[msg.sender]) {\r\n            revert UnauthorizedSpender();\r\n        }\r\n        _;\r\n    }\r\n\r\n    function authorizeSpender(address spender) external onlyAdmin {\r\n        authorizedSpenders[spender] = true;\r\n        emit SpenderAuthorized(spender);\r\n    }\r\n\r\n    function revokeSpender(address spender) external onlyAdmin {\r\n        authorizedSpenders[spender] = false;\r\n        emit SpenderRevoked(spender);\r\n    }\r\n\r\n    function addPoints(address client, uint _points) public onlyAdmin {\r\n        points[client] += _points;\r\n        lifetimePointsEarned[client] += _points;\r\n        _updateTotalPoints(int(_points));\r\n        emit PointsAdded(client, _points);\r\n    }\r\n\r\n    function spendPointsFrom(address client, uint _points) external onlyAuthorizedSpender {\r\n        if (points[client] < _points) {\r\n            revert InsufficientPoints(points[client], _points);\r\n        }\r\n\r\n        points[client] -= _points;\r\n        lifetimePointsSpent[client] += _points;\r\n        _updateTotalPoints(-int(_points));\r\n        emit PointsSpent(client, _points);\r\n    }\r\n\r\n    function spendPoints(uint _points) public {\r\n        if (points[msg.sender] < _points) {\r\n            revert InsufficientPoints(points[msg.sender], _points);\r\n        }\r\n\r\n        points[msg.sender] -= _points;\r\n        lifetimePointsSpent[msg.sender] += _points;\r\n        _updateTotalPoints(-int(_points));\r\n        emit PointsSpent(msg.sender, _points);\r\n    }\r\n\r\n    function setPointValue(uint _pointValue) public onlyAdmin {\r\n        if (_pointValue == 0) revert InvalidPointValue();\r\n        uint oldValue = pointValue;\r\n        pointValue = _pointValue;\r\n        emit PointValueChanged(oldValue, _pointValue);\r\n    }\r\n\r\n    function getTotalValue(address client) public view returns (uint totalValue) {\r\n        totalValue = points[client] * pointValue;\r\n    }\r\n\r\n    function _updateTotalPoints(int256 _change) internal {\r\n        if (_change > 0) {\r\n            totalPoints += uint256(_change);\r\n        } else {\r\n            totalPoints -= uint256(-_change);\r\n        }\r\n    }\r\n\r\n    function getTotalPoints() public view returns (uint256) {\r\n        return totalPoints;\r\n    }\r\n\r\n    function canAfford(address client, uint requiredValue)\r\n    external\r\n    returns (uint requiredPoints)\r\n    {\r\n        nbCalls += 1;\r\n\r\n        if (points[client] == 0) {\r\n            revert NotFound();\r\n        }\r\n\r\n        requiredPoints = (requiredValue + pointValue - 1) / pointValue;\r\n\r\n        require(\r\n            this.getTotalValue(client) >= requiredValue,\r\n            \"Insufficient Funds!\"\r\n        );\r\n    }\r\n\r\n    function getClientStats(address client)\r\n    external\r\n    view\r\n    returns (\r\n        uint currentPoints,\r\n        uint totalEarned,\r\n        uint totalSpent,\r\n        uint totalValue\r\n    )\r\n    {\r\n        currentPoints = points[client];\r\n        totalEarned = lifetimePointsEarned[client];\r\n        totalSpent = lifetimePointsSpent[client];\r\n        totalValue = getTotalValue(client);\r\n    }\r\n\r\n    function getBalance(address client) external view returns (uint) {\r\n        return points[client];\r\n    }\r\n}"
+      }
+    }
+  }
+}

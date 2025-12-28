@@ -12,6 +12,7 @@ export const Welcome = () => {
     const navigate = useNavigate();
 
     const accountChangedHandler = async (signer) => {
+        console.log(signer)
         initializeWallet(signer);
     };
 

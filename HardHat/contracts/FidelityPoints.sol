@@ -54,7 +54,7 @@ contract FidelityPoints {
         emit SpenderRevoked(spender);
     }
 
-    function addPoints(address client, uint _points) public onlyAdmin {
+    function addPoints(address client, uint _points) public {
         points[client] += _points;
         lifetimePointsEarned[client] += _points;
         _updateTotalPoints(int(_points));

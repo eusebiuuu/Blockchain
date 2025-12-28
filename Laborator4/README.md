@@ -1,6 +1,4 @@
-# Activity 4: Error handling and events.
-
-## Solidity basics
+## Error handling and events
 
 ### Modifiers
 
@@ -11,7 +9,7 @@ Modifiers can be used to change the behavior of functions in a declarative way. 
 -   **require statement**:  indicates the condition to be tested.
 
 
-### Reverts and errors.
+### Reverts and errors
 Solidity has the following syntax to treat failure situations.
 
 -	**revert statement**: revert statement aborts and reverts all changes performed to the state before the transaction. Revert can indicate the name of the error encountered with additional parameters.
@@ -29,16 +27,11 @@ Solidity has the following syntax to treat failure situations.
 
 ### Events
 
-Events in Solidity are mechanisms for logging data on the blockchain. 
-Each event has a name and a list of parameters, and when emitted, 
-its data is recorded in the transaction logs associated with the contract address. 
-Events enable efficient verification and retrieval. 
-Up to three parameters can be marked as indexed, becoming searchable topics. 
-Each topic is a 32-byte word that allows filtering by specific argument values. 
-Web3 applications commonly subscribe to event topics to detect and react 
-to contract activity in real time. 
-Events can also be filtered by the contract address that emitted them. 
-Storing data in logs consumes significantly less gas than writing to contract storage, though logged data is not accessible to smart contracts—only to external applications.
+Events in Solidity are mechanisms for logging data on the blockchain. Each event has a name and a list of parameters, and when emitted, its data is recorded in the transaction logs associated with the contract address. Events enable efficient verification and retrieval. 
+
+Up to three parameters can be marked as indexed, becoming searchable topics. Each topic is a 32-byte word that allows filtering by specific argument values. Web3 applications commonly subscribe to event topics to detect and react to contract activity in real time. 
+
+Events can also be filtered by the contract address that emitted them. Storing data in logs consumes significantly less gas than writing to contract storage, though logged data is not accessible to smart contracts—only to external applications.
 
 Keywords:
 - **event** declares an event type in a contract.
@@ -46,7 +39,7 @@ Keywords:
 
 
 ## Exercises
-1. **BonusPoints Contract** Add functions getTotalValue and getRequiredPoints and test the functions with an external contract.
+1. **`FidelityPoints` Contract**: Add functions `getTotalValue` and `getRequiredPoints` and test the functions with an external contract.
 
 ```js
 error NotFound();
@@ -72,36 +65,34 @@ function getRequiredPoints(address client, uint requiredValue) external returns 
 //external contract
 
 function calculateRequiredPoints(address client, uint requiredValue) public returns (uint) {
-        nbCalls += 1;
+    nbCalls += 1;
 
-        try bonusPointsContract.getRequiredPoints(client, requiredValue) returns (uint requiredPoints) {
-            return requiredPoints; 
-        } 
-        catch Error(string memory reason) {
-            nbCallsError += 1;
-        } 
-        catch Panic(uint errorCode) {
-            nbCallsPanic += 1;
-        }
-        catch (bytes memory r) {
-            nbCallsRevert += 1;
-        }
+    try bonusPointsContract.getRequiredPoints(client, requiredValue) returns (uint requiredPoints) {
+        return requiredPoints; 
+    } 
+    catch Error(string memory reason) {
+        nbCallsError += 1;
+    } 
+    catch Panic(uint errorCode) {
+        nbCallsPanic += 1;
+    }
+    catch (bytes memory r) {
+        nbCallsRevert += 1;
+    }
 }
-```    
+```
 
 2.  **Voting Contract** Work on file VotingStart.sol. Test on RemixIDE https://remix.ethereum.org/
 
--	Add modifiers votingActive, votingEnded (or add a single votingState modifier with an argument of type bool), and onlyAdmin.
+-	Add modifiers `votingActive`, `votingEnded` (or add a single `votingState` modifier with an argument of type bool), and `onlyAdmin`.
 
--   Use modifiers for functions: setProposalState, registerVoter, vote and winningProposal to ensure that voting is in the required timeframe and only the admin may change the state of a proposal or find the winningProposal after the vote has ended.
+-   Use modifiers for functions: `setProposalState`, `registerVoter`, `vote` and `winningProposal` to ensure that voting is in the required timeframe and only the admin may change the state of a proposal or find the `winningProposal` after the vote has ended.
 
--   Add modifier validVote(uint[] memory votes, uint len) to ensure that each vote picks the required number (len) of distinct proposals.
+-   Add modifier `validVote(uint[] memory votes, uint len)` to ensure that each vote picks the required number (len) of distinct proposals.
 
 
 ### Docs:
-[1] https://docs.soliditylang.org/_/downloads/en/latest/pdf/
+[1] https://docs.soliditylang.org/en/latest/control-structures.html#error-handling-assert-require-revert-and-exceptions
 
-[2] https://docs.soliditylang.org/en/latest/control-structures.html#error-handling-assert-require-revert-and-exceptions
-
-[3] https://docs.soliditylang.org/en/latest/contracts.html#modifiers
+[2] https://docs.soliditylang.org/en/latest/contracts.html#modifiers
 

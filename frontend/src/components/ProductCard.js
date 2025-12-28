@@ -27,7 +27,7 @@ const ProductCard = ({ product, onBuy, userPoints }) => {
     };
 
     const handleBuyClick = () => {
-        onBuy(product.code, quantity);
+        onBuy(product.price, product.code, quantity);
     };
 
     const handleQuantityChange = (e) => {

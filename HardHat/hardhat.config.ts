@@ -41,7 +41,6 @@ const config: HardhatUserConfig = {
     sepolia: {
       type: "http",
       chainType: "l1",
-      gas: 10,
       gasPrice: "auto",
       url: process.env.SEPOLIA_RPC_URL as string,
       accounts: [process.env.SEPOLIA_PRIVATE_KEY as string],

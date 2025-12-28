@@ -42,6 +42,7 @@ contract Catalog {
 
     constructor() {
         admin = msg.sender;
+        authorizedManagers[admin] = true;
     }
 
     modifier onlyAdmin() {

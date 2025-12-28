@@ -14,7 +14,7 @@ const dir = dirname(filename);
 
 async function copyArtifactsToFrontend() {
     const hardhatDir = path.join(dir, "..");
-    const frontendDir = path.join(dir, "../../src/contracts");
+    const frontendDir = path.join(dir, "../../frontend/src/contracts");
 
     console.log(`Copying ${frontendDir}`);
 

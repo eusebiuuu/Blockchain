@@ -13,7 +13,7 @@ The ERC-20 standard defines digital assets like currencies and loyalty points. T
 Token creator must define fields: 
 
 -   **Token name**: The name of the token is a unique identifier, providing a recognizable label for users and platforms. It helps distinguish the token in wallets, exchanges, and across applications. For example, “USD Coin” or “Chainlink.” 
--   **Token symbol**: The symbol is a shorthand identifier, usually consisting of three to five uppercase letters, similar to stock ticker symbols. It’s used for quick identification on exchanges and wallets. Examples include “USDC” for USD Coin or “LINK” for Chainlink., 
+-   **Token symbol**: The symbol is a shorthand identifier, usually consisting of three to five uppercase letters, similar to stock ticker symbols. It’s used for quick identification on exchanges and wallets. Examples include “USDC” for USD Coin or “LINK” for Chainlink.
 -   **Number of Tokens created**: This defines the total supply of tokens that exist or can ever exist. Some tokens have a fixed supply (like 1 billion tokens), while others might have mechanisms to mint or burn tokens over time. This initial supply affects scarcity and, potentially, the token's value., 
 -   **Subdivisions**:  Most tokens are divisible, allowing users to transact in smaller amounts. Subdivisions set how many decimal places a token can be split into, similar to how a dollar can be divided into cents. In ERC-20 tokens, subdivisions are commonly set to 18 decimal places, enabling fine-grained transactions (e.g., 0.000000000000000001 of a token). 
 

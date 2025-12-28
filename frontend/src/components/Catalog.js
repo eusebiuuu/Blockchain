@@ -1,12 +1,13 @@
 import '../styles/Catalog.css'
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useWallet } from '../utils/Context';
-import { getBalance } from '../utils/EthersUtils';
+import { buyProduct, decreaseFidelityPoints, getBalance } from '../utils/EthersUtils';
 import {
-    getCatalogProducts,
+    // getCatalogProducts,
     getProductsWithPrices,
     getFidelityPoints,
+    addFidelityPoints
    // purchaseProduct,
    // previewPurchase
 } from '../utils/EthersUtils';
@@ -75,6 +76,16 @@ export const Catalog = () => {
         } finally {
             setLoading(false);
         }
+    }, []);
+
+    const increaseFidelityPoints = useCallback(async () => {
+        if (wallet?.address) {
+            try {
+                await addFidelityPoints(wallet.address);
+            } catch (error) {
+                console.error('Error fetching fidelity points:', error);
+            }
+        }
     }, [wallet]);
 
     useEffect(() => {
@@ -90,9 +101,17 @@ export const Catalog = () => {
         }, 10000);
 
         return () => clearInterval(intervalId);
-    }, [fetchAddress, fetchBalance, fetchFidelityPoints, fetchProducts]);
+    }, [fetchAddress, fetchBalance, fetchFidelityPoints, fetchProducts, increaseFidelityPoints]);
 
-    const handleBuyProduct = async (productCode, quantity = 1) => {
+    const handleBuyProduct = async (productPrice, productCode, quantity = 1) => {
+        try {
+            const responseBuy = await buyProduct(productCode, quantity);
+            console.log(responseBuy);
+            const responseSpend = await decreaseFidelityPoints(productPrice * quantity);
+            console.log(responseSpend);
+        } catch (error) {
+            console.log("An error occured when buying a product: ", error);
+        }
     };
 
     const closePopup = () => {
@@ -112,6 +131,10 @@ export const Catalog = () => {
                         <p><strong>ETH Balance:</strong> {balance} Wei</p>
                         <p><strong>Fidelity Points:</strong> {fidelityPoints}</p>
                     </div>
+                </div>
+
+                <div className='info-card'>
+                    <button onClick={increaseFidelityPoints}>Add points</button>
                 </div>
 
                 <div className="products-section">
