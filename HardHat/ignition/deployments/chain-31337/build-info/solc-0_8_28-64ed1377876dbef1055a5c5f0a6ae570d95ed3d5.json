@@ -1,0 +1,39 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_28-64ed1377876dbef1055a5c5f0a6ae570d95ed3d5",
+  "solcVersion": "0.8.28",
+  "solcLongVersion": "0.8.28+commit.7893614a",
+  "userSourceNameMap": {
+    "contracts/MyERC20.sol": "project/contracts/MyERC20.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "cancun",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/MyERC20.sol": {
+        "content": "// SPDX-License-Identifier: GPL-3.0\npragma solidity ^0.8.28;\n\n\ncontract MyERC20{\n\n    uint256 nbTokens;   \n\n    mapping(address => uint256) balances;\n    mapping(address => mapping (address => uint256)) allowances;\n\n    string public name =\"Token optional BC\";               \n    uint8 public decimals = 0;                \n    string public symbol = 'TOP';  \n\n    event Approval(address indexed tokenOwner, address indexed spender, uint tokens);\n    event Transfer(address indexed from, address indexed to, uint tokens);\n\n\n    modifier checkBalance (address owner, uint tokens) {\n        require(tokens <= balances[owner], 'Insufficient funds!');\n        _;\n    }\n\n    modifier checkApproval (address owner, address delegate, uint tokens) {\n        require(tokens <= allowances[owner][delegate], 'Insufficient allowance!');\n        _;\n    }\n\n    constructor(uint256 tokens) {\n        nbTokens = tokens;\n        balances[msg.sender] = tokens;\n    }\n\n    function totalSupply() public view returns (uint256) { \n        return nbTokens;\n    }\n\n    function balanceOf(address tokenOwner) public view returns (uint) { \n        return balances[tokenOwner];\n    }\n\n    function transfer(address receiver, uint tokens) public checkBalance (msg.sender ,tokens) \n\t\t\t\t\t\t\t\treturns (bool) {   \n        balances[msg.sender] = balances[msg.sender] - tokens;\n        balances[receiver] = balances[receiver] + tokens;\n        emit Transfer(msg.sender, receiver, tokens);\n        return true;    \n    }\n\n    function approve(address spender, uint tokens)  public returns (bool) {\n        allowances[msg.sender][spender] = tokens;\n        emit Approval(msg.sender, spender, tokens);\n        return true;\n    }\n\n    function allowance(address tokenOwner, address spender) public view \n\t\t\t\t\t\t\t\treturns(uint) { \n        return allowances[tokenOwner][spender];\n    }\n\n    function transferFrom(address from, address to, uint tokens) \n            public  checkBalance (from, tokens) \n                    checkApproval(from, msg.sender, tokens) returns (bool) {\n        \n        balances[from] = balances[from] - tokens;\n        allowances[from][msg.sender] = allowances[from][msg.sender]- tokens;\n        balances[to] = balances[to] + tokens;\n        emit Transfer(from, to, tokens);\n        return true;\n    }\n}\n"
+      }
+    }
+  }
+}

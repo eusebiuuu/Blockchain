@@ -75,6 +75,35 @@ event Transfer(address indexed _from, address indexed _to, uint256 _value)
 event Approval(address indexed _owner, address indexed _spender, uint256 _value)
 ```
 
+
+### Members of address:
+
+- **balance**: account balance.
+- **code**: code for smart contract account.
+- **send**: send given amount of Wei to Address, returns false on failure, forwards 2300 gas.
+- **transfer**: send given amount of Wei to Address, reverts on failure forwards 2300 gas.
+- **call**(bytes memory): low-level CALL with the given payload, returns success condition and return data, forwards all available gas.
+- **delegatecall**(bytes memory): low-level DELEGATE CALL wiht a given payload, returns success condition and return data; it runs in the caller context
+- **staticcall** for read-only calls.
+
+
+### Special functions
+
+There are two special functions associated with eth transfers receive() and fallback(). Both are marked public payable. Each contract has its own balance and may receive eth in the following ways:
+- **constructor payable**: If the constructor of a contract is payable, when the contract is deployed the msg.value of the transaction calling the constructor will be deposited in the contract balance.
+
+- **function payable**: If a function is payable, when the function is called with msg.value, msg.value will be added to the contract balance.
+
+- **receive function**: each contract may have one receive function. This function is executed after a call to the contract with empty calldata. If the contract has no payable function defined it must have a receive function in order to receive eth.
+
+- **fallback function**: each contract may have one fallback function. This function is executed after a call to the contract if none of the other function match the call or if calldata is empty and there is not receive function. If the contract has no payable function defined or no receive function it must have a fallback function in order to receive eth. It is recommended to define a receive function even if a fallback function is defined to distinguish between transfers and other types of calls.
+
+
+### Inheritance
+Solidity supports multiple inheritance, polymorphism and overriding. Keywords this and super have the standard semantics: current contract, the parent of the current contract in the inheritance hierarchy. Keywords virtual and override are also used with the standard meaning: functions not yet implemented and functions the override the implementation from the base class.
+“When a contract inherits from other contracts, only a single contract is created on the blockchain, and the code from all the base contracts is compiled into the created contract.”
+
+
 ## Exercises
 
 1.	**Deploy and test an ERC20 token implementation**: 
@@ -123,8 +152,6 @@ You should:
 ### Docs: 
 [1] https://ethereum.org/en/developers/docs/standards/tokens/erc-20/
 
-[2] https://hardhat.org/hardhat-runner/docs/guides/project-setup
+[2] https://docs.metamask.io/services/get-started/infura
 
-[3] https://docs.metamask.io/services/get-started/infura
-
-[4] https://hardhat.org/tutorial/testing-contracts
+[3] https://hardhat.org/tutorial/testing-contracts

@@ -201,6 +201,35 @@
 - Most of the standards out there are mostly concerned with the tokens compatibility when interacting with these entities
 - The most important ERCs, which you can find on [this list](https://eips.ethereum.org/erc) are the following: 20, 721, 165, 173, 2612, 1155, 4626
 
+## Oracles
+
+**Introduction**
+- An Oracle is a middleware component that connects a smart contract with an external source of information to broaden its applications. In other words, they are **data feeds** (existing data sources or computations) that connect blockchain to off-chain information.
+- 3 types of Oracles:
+  - Software: deterministic programs that feeds the blockchains with external information from databases, websites etc.
+  - Hardware: transform the real world events (weather, pollution etc.) into information that is useful for a smart contract; provides usecases especially for Supply Chain services
+  - Human: is able to ask for and process human responses regarding certain conditions; the answer has to be cryptographically signed
+- The Oracles can be also **inbound** (from exterior to smart contract) or **outbound** depending on the direction of information flow and centralized or decentralized depending on the controlable status.
+- **Cross chain** Oracles
+
+**Random Number Generators (RNGs)**
+- Talking about external information for smart contracts, let's analyse a situation: how one can generate a random number in a smart contract to decide something (for example, the winner of a lottery or a secret number that has to be guessed).
+- The first idea that comes into everyone's mind is to use the time, more exactly the `block.timestamp` property of the block. For that, consider the fact that the validator chooses which timestamp the block should have (this is for the synchronization in voting as well as consensus within validators regarding generated numbers since every node must execute the exact same operations and get the exact same output).
+- Thus, we can note 2 issues that appear here:
+  - **Mining manipulation**: the proposer validator can run the next block to be proposed multiple times, everytime changing the timestamp a little bit, up to the point where the random number generator returns a favorable number. Then, the validator sets the timestamp as the favorable one and propose the block, knowing it will generate the desired result and nobody knowing the generator was rigged.
+  - **Front-running**: note that all the validators have to also run the transactions from the proposed block, thus having access to the block timestamp. Then, they can run the RNG and get the answer long time before the transaction is actually run
+- To mitigate these issues, we can use an Oracle that connects to an external (though centralized) service (eg.: **ChainLink VRF**)
+
+**Decentralization**
+- As you may noticed, there is a big problem with Oracles: they are centralized. If one can reach a point where can manipulate a certain Oracle, or the datasource of the Oracle becomes corrupted or experience failures, then the smart contract will experience issues. Thus, at some point the blockchains become vulnerable since the smart contracts are immutable.
+- To solve this issue, a decentralized platform with Oracles was created, which is called **Decentralized Open Network (DON)** that combines multiple data sources and multiple independent oracles and also is able to prove the data validity.
+
+**Chainlink**
+- Reputation contract
+- Order matching contract
+- Aggregating contract
+- VRFs
+
 
 ## Questions to answer
 
@@ -211,3 +240,4 @@
 - Panic mode, slashing and burned ETH: https://eth2book.info/bellatrix/part2/incentives/inactivity
 - What are the exchanges?
 - What other components of blockchain are there besides smart contracts, blockchain elements, exchange entities and wallets?
+- RNGs: commit-reveal, VRF

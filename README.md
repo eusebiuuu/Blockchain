@@ -10,6 +10,8 @@ Lab 4: Error handling and events
 
 Refactor the smart contracts from each lab to be make sense and define a complete flow
 
+Solidity C3 Linearization
+
 Define quick reference section
 
 [Solidity docs](https://docs.soliditylang.org/en/v0.8.28/)
@@ -28,3 +30,14 @@ Add branches for each series of course + lab
 npx hardhat run scripts/deploy.ts --network localhost
 
 npx hardhat ignition deploy ignition/modules/FidelityPoints.ts --network localhost
+
+
+### Project workflow
+
+- Create contracts
+- Create deploy script (& populate contracts if needed)
+- Test with Remix
+- Deploy locally on hardhat
+- Test with the frontend
+- Deploy on Sepolia
+- Test with the frontend
